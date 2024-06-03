@@ -139,7 +139,7 @@ with DAG('increment_load_radar', default_args=default_args, schedule_interval='@
                     '_id': file_name,
                     'file_name': file_name,
                     'from': 'disk',
-                    'to': 'staging_area',
+                    'to': 'staging',
                     'status': 'success',
                     'completed_at': datetime.now(),
                 }
@@ -193,7 +193,7 @@ with DAG('increment_load_radar', default_args=default_args, schedule_interval='@
         #         }
         #     ]
         #     list_time_volume_start = list(connect.aggregate(
-        #         database='staging_area',
+        #         database='staging',
         #         collection='radar_sweep',
         #         pipeline=pipeline
         #     ))
@@ -203,7 +203,7 @@ with DAG('increment_load_radar', default_args=default_args, schedule_interval='@
         def get_time_location_key(): #==> [{}, {}]
             connect = MongoDBHook(conn_id='mongodb')
             list_time_volume_start = list(connect.find(
-                database='staging_area',
+                database='staging',
                 collection='radar_sweep',
                 projection={'_id': False, 'time_volume_start': True, 'radar_location_id': True}  
             ))
@@ -219,7 +219,7 @@ with DAG('increment_load_radar', default_args=default_args, schedule_interval='@
                 time_volume_start = key['time_volume_start']
                 radar_location_id = key['radar_location_id']
                 radar_sweep_data = list(connect.find(
-                    database='staging_area', 
+                    database='staging', 
                     collection='radar_sweep', 
                     query={
                         'time_volume_start': time_volume_start, 
@@ -239,7 +239,7 @@ with DAG('increment_load_radar', default_args=default_args, schedule_interval='@
                 time_volume_start = key['time_volume_start']
                 radar_location_id = key['radar_location_id']
                 radar_data = list(connect.find(
-                    database='staging_area', 
+                    database='staging', 
                     collection='radar_data', 
                     query={
                         'time_volume_start': time_volume_start, 
@@ -424,7 +424,7 @@ with DAG('increment_load_radar', default_args=default_args, schedule_interval='@
                 document = {
                     'time_id': time_key,
                     'location_id': location_key,
-                    'from': 'staging_area',
+                    'from': 'staging',
                     'to': 'core',
                     'status': 'success',
                     'completed_at': datetime.now(),
@@ -478,7 +478,7 @@ with DAG('increment_load_radar', default_args=default_args, schedule_interval='@
             connect = MongoDBHook(conn_id='mongodb')
             cols = ['radar_data', 'radar_sweep', 'radar_location']
             for col in cols:
-                connect.delete_many(database='staging_area', collection=col, filter={})
+                connect.delete_many(database='staging', collection=col, filter={})
         # loading_dim_location = load_dim_location()
         keys = get_time_location_key()
         refreshing_staging = task_refresh_staging()

@@ -133,7 +133,7 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
                     '_id': file_name,
                     'file_name': file_name,
                     'from': 'disk',
-                    'to': 'staging_area',
+                    'to': 'staging',
                     'status': 'success',
                     'completed_at': datetime.now(),
                 }
@@ -176,10 +176,10 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
         @task 
         def load_era5_single(documents):
             connect = MongoDBHook(conn_id='mongodb')
-            connect.insert_one(
-                database='staging_area', 
+            connect.insert_many(
+                database='staging', 
                 collection='era5_single', 
-                document=documents[0]
+                documents=documents[1:3]
             )
         
         reading_era5 = read_era5_single()
@@ -208,10 +208,10 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
         @task 
         def load_era5_pressure(documents):
             connect = MongoDBHook(conn_id='mongodb')
-            connect.insert_one(
-                database='staging_area', 
+            connect.insert_many(
+                database='staging', 
                 collection='era5_pressure', 
-                document=documents[0]
+                documents=documents[1:3]
             )
         
         reading_era5 = read_era5_pressure()
@@ -228,7 +228,7 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
         def extract_staging_radar():
             connect = MongoDBHook(conn_id='mongodb')
             radar_sweep_data = list(connect.find(
-                database='staging_area', 
+                database='staging', 
                 collection='radar_sweep', 
            
                 projection={
@@ -237,7 +237,7 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
             ))
             
             radar_data = list(connect.find(
-                database='staging_area', 
+                database='staging', 
                 collection='radar_data', 
                 projection={
                     '_id': False
@@ -286,7 +286,7 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
         @task
         def extract_staging_era5_single():
             connect = MongoDBHook(conn_id='mongodb')
-            documents = list(connect.find(database='staging_area', collection='era5_single'))
+            documents = list(connect.find(database='staging', collection='era5_single'))
             return extract_staging_era5(documents)
 
         @task
@@ -325,7 +325,7 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
         @task
         def extract_staging_era5_pressure():
             connect = MongoDBHook(conn_id='mongodb')
-            documents = list(connect.find(database='staging_area', collection='era5_pressure'))
+            documents = list(connect.find(database='staging', collection='era5_pressure'))
             return extract_staging_era5(documents)
 
         @task
@@ -747,8 +747,8 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
     def refresh_staging():
         connect = MongoDBHook(conn_id='mongodb')
         collections = ['radar_data', 'radar_location', 'radar_sweep']
-        for col in collections:
-            connect.delete_many(database='staging_area', collection=col,filter={})
+        # for col in collections:
+        #     connect.delete_many(database='staging', collection=col,filter={})
             
     init_loading_staging_radar = group_task_init_staging_radar()
     init_loading_staing_era5_single = group_task_init_staging_era5_single()

@@ -49,7 +49,7 @@ def deserialize(json_str):
 @task
 def extract_staging_era5_single():
     connect = MongoDBHook(conn_id='mongodb')
-    documents = list(connect.find(database='staging_area', collection='era5_single'))
+    documents = list(connect.find(database='staging', collection='era5_single'))
     dimension_element = []
     dimension_time = []
     dimension_location = []

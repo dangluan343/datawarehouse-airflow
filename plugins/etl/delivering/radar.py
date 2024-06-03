@@ -6,7 +6,7 @@ class RadarStagingLoader:
     def load_radar_sweep(self, radar_sweep_info):
         connect = self.connect
         inserted_radar_sweep = connect.insert_one(
-            database='staging_area', 
+            database='staging', 
             collection='radar_sweep', 
             document=radar_sweep_info
         )
@@ -15,7 +15,7 @@ class RadarStagingLoader:
     def load_radar_data(self, radar_data):
         connect = self.connect
         connect.insert_many(
-            database='staging_area', 
+            database='staging', 
             collection='radar_data', 
             documents=radar_data
         )
