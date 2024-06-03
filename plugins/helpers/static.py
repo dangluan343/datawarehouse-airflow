@@ -1,2 +1,0 @@
-AUDIT_LOG_LOAD_SOURCE=['NHABE', 'NEXRAD']
-AUDIT_LOG_DATA_STATUS=['success', 'error']

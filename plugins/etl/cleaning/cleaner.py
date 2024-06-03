@@ -40,20 +40,20 @@ def clean_dimension_time_era5(dimension_times):
 
 
 
-def clean_dimension_location_era5(dimension_locations):
-    for index, value in enumerate(dimension_locations):
-        pressure = value['altitude']
-        dimension_locations[index]['altitude'] = pressure_to_altitude(pressure)
-
-    return dimension_locations
+def clean_location_format(dimension_location):
+    for index, value in enumerate(dimension_location):
+        hPa = value['altitude']
+        dimension_location[index]['altitude'] = convert_hpa_level_to_m(hPa)
 
 
-def pressure_to_altitude(pressure):
-    if pressure == 0:
-        hpa = 1013.25
-    else:
-        hpa = 1000 - (999 / 36) * pressure
-    feet = (1 - (hpa / 1013.25) ** 0.190284) * 145366.45
+    return dimension_location
+
+
+def convert_hpa_level_to_m(hPa):
+    if hPa == 0:
+        return 0
+    
+    feet = ((1 - abs(hPa / 1013.25) ** 0.190284) * 145366.45)
     meter = feet * 0.3048
     return meter
 

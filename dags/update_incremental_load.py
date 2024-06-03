@@ -313,7 +313,7 @@ with DAG('initial_load_radar_v2', default_args=default_args, schedule_interval='
         def clean_dim_loc_era5_single(extracted_data):
             dict_dim_key_for_fact = deduplicate(extracted_data['dimension_location'])
             dim_loc_values = list(dict_dim_key_for_fact.values())
-            clean_dimension_location_era5(dim_loc_values)
+            clean_location_format(dim_loc_values)
             return dict_dim_key_for_fact
 
         @task
@@ -352,7 +352,7 @@ with DAG('initial_load_radar_v2', default_args=default_args, schedule_interval='
         def clean_dim_loc_era5_pressure(extracted_data):
             dict_dim_key_for_fact = deduplicate(extracted_data['dimension_location'])
             dim_loc_values = list(dict_dim_key_for_fact.values())
-            clean_dimension_location_era5(dim_loc_values)
+            clean_location_format(dim_loc_values)
             return dict_dim_key_for_fact
 
         @task

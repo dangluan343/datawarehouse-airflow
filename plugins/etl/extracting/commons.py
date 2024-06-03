@@ -1,8 +1,6 @@
 import os
 import glob
-# import eccodes
-# import json
-# import numpy
+
 #%%
 SOURCES_PATH = '/Users/luanluan/Documents/Data/dw_airflow_2/data/'
 
