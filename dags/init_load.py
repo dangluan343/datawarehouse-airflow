@@ -70,7 +70,7 @@ default_args = {
     'retries': 1
 }
 
-with DAG('initial_load_radar_v2', default_args=default_args, schedule_interval='@once') as dag:
+with DAG('init_load', default_args=default_args, schedule_interval='@once') as dag:
 
     @task_group
     def group_task_init_staging_radar():
