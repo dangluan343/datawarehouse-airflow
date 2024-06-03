@@ -1,19 +1,22 @@
 class RadarStagingLoader:
     def __init__(self, connect):
-        self.connect = connect #MongoHook obj
+        self.connect = connect
+    
 
-    def load_dim_time(self, time):
-        connect = self.connect()
-        time_query = {
-            '_id': time['_id']
-        }
-     # Check if radar location already exists
-        find_time = connect.find_one(
-            database='core', collection='dimension_time', query=time_query
+    def load_radar_sweep(self, radar_sweep_info):
+        connect = self.connect
+        inserted_radar_sweep = connect.insert_one(
+            database='staging_area', 
+            collection='radar_sweep', 
+            document=radar_sweep_info
         )
-
-        if not find_time:
-            # Create new time if not found
-            connect.insert_one(
-                database='core', collection='dimension_time', document=time
-            )
+        return inserted_radar_sweep.inserted_id
+        
+    def load_radar_data(self, radar_data):
+        connect = self.connect
+        connect.insert_many(
+            database='staging_area', 
+            collection='radar_data', 
+            documents=radar_data
+        )
+        

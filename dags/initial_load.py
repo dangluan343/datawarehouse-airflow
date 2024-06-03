@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.decorators import task, task_group
 from airflow.utils.dates import days_ago
+
 from hooks.mongo_hook import MongoDBHook
 
 from etl.extracting.source_api import *
@@ -93,12 +94,7 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
 
 
 
-            @task 
-            def read_radar_info(file_path):
-                radar = pyart.io.read_sigmet(file_path)
-                reader = RadarReader(radar)
-                radar_info = reader.get_radar_info()
-                return serialize(radar_info)
+            
             
             @task 
             def read_radar_sweep(file_path):
@@ -114,12 +110,7 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
                 radar_data = reader.get_radar_data()
                 return serialize(radar_data)
             
-            @task
-            def load_radar_location(radar_info):
-                connect = MongoDBHook(conn_id='mongodb')
-                loader = RadarStagingLoader(connect)
-                logging.info(f"Loaded radar info: {radar_info}")
-                loader.load_radar_location(deserialize(radar_info))
+            
 
             @task
             def load_radar_sweep(radar_sweep):
@@ -155,15 +146,13 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
 
                 logging.info(f"audit log load: {file_name}")
 
-            reading_radar_info = read_radar_info(file_path)
-            loading_radar_location = load_radar_location(reading_radar_info)
             reading_radar_sweep = read_radar_sweep(file_path)
             loading_radar_sweep = load_radar_sweep(reading_radar_sweep)
             reading_radar_data = read_radar_data(file_path)
             loading_radar_data = load_radar_data(reading_radar_data) 
             writing_adit_log_load = write_audit_log_load(file_path)
             
-            return [loading_radar_location, loading_radar_sweep, loading_radar_data] >> writing_adit_log_load
+            return [ loading_radar_sweep, loading_radar_data] >> writing_adit_log_load
 
         file_paths = get_absolute_file_paths()
         group_task_etl_on_each_file.expand(file_path=file_paths)

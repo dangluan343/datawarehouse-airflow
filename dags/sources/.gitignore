@@ -1,0 +1,46 @@
+# Python related
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.pyo
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Airflow related
+airflow.cfg
+airflow.db
+logs/
+dags/__pycache__/
+plugins/__pycache__/
+unittests.cfg
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.Trash-*
+.nfs*
+
+# Custom directories (add your own as necessary)
+/data
+/data_info_txt
+/data_to_web
+/jupyter
+./standalone_admin_password.txt

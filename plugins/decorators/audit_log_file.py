@@ -1,5 +1,9 @@
-from helpers.radar_helper import get_file_name_from_absolute_path
+ 
 
+
+def get_file_name_from_absolute_path(path):
+    return path.split('/')[-1]
+# %%
 
 
 def write_audit_log_file(func):
