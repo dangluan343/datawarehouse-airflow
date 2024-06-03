@@ -1,5 +1,26 @@
 import numpy as np
 import json
+
+import json
+
+def remove_duplicates(dict_list):
+    seen = set()
+    unique_list = []
+    duplicate_list = []
+    duplicates_count = 0
+
+    for d in dict_list:
+        j = json.dumps(d, sort_keys=True)
+        if j not in seen:
+            seen.add(j)
+            unique_list.append(d)
+        else:
+            duplicate_list.append(d)
+            duplicates_count += 1
+
+    return unique_list, duplicates_count, duplicate_list
+
+
 def deduplicate(values):
     """Use set to remove duplicate dictionaries
     list of 1 type of dimension(time, location) -> deduplicated and sorted list of that dimension in all documents
@@ -42,18 +63,17 @@ def clean_dimension_time_era5(dimension_times):
 
 def clean_dimension_location_era5(dimension_locations):
     for index, value in enumerate(dimension_locations):
-        pressure = value['altitude']
-        dimension_locations[index]['altitude'] = pressure_to_altitude(pressure)
+        hPa = value['altitude']
+        dimension_locations[index]['altitude'] = convert_hpa_level_to_m(hPa)
 
     return dimension_locations
 
 
-def pressure_to_altitude(pressure):
-    if pressure == 0:
-        hpa = 1013.25
-    else:
-        hpa = 1000 - (999 / 36) * pressure
-    feet = (1 - (hpa / 1013.25) ** 0.190284) * 145366.45
+def convert_hpa_level_to_m(hPa):
+    if hPa == 0:
+        return 0
+    
+    feet = ((1 - abs(hPa / 1013.25) ** 0.190284) * 145366.45)
     meter = feet * 0.3048
     return meter
 

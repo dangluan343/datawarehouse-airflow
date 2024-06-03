@@ -68,7 +68,7 @@ def read_radar_file_path():
     """
     file_path_result = []
     # Đường dẫn tuyệt đối dến thư mục dữ liệu radar
-    radar_path = '/Users/luanluan/Documents/Data/dw_airflow_2/data/radar'
+    radar_path = '/Users/thanhho/Documents/weather-data-warehouse/datawarehouse-airflow/dags/sources/radar'
     
     #lấy toàn bộ file name trong thư mục hiện tại 
     years = os.listdir(radar_path)
@@ -109,7 +109,7 @@ def read_radar_file_path():
     return file_path_result
 
 #%%
-def get_absolute_file_path(data_dir='/Users/luanluan/Documents/Data/dw_airflow_2/data/radar'):
+def get_absolute_file_path(data_dir='/Users/thanhho/Documents/weather-data-warehouse/datawarehouse-airflow/dags/sources/radar'):
     current_files = set()
     for root, _, files in os.walk(data_dir):
         for file in files:

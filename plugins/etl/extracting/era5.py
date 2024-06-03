@@ -1,4 +1,14 @@
 import eccodes
+import os
+import glob
+
+SOURCES_PATH = '/Users/thanhho/Documents/weather-data-warehouse/sources/'
+
+def get_files_in_directory(directory):
+    file_pattern = os.path.join(directory, '*.grib')
+    file_list = glob.glob(file_pattern)
+    return file_list
+
 
 def get_era5_data(era5_file):
     file = open(era5_file, 'rb')
