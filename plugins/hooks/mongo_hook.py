@@ -163,14 +163,24 @@ class MongoDBHook(BaseHook):
         return col.aggregate(pipeline)
 
 # Implement other CRUD operations as needed
+
 #%%
 from pymongo import MongoClient
 
 connect = MongoClient('mongodb://localhost:27017')
 db = connect['core']
-dimension_element = db['dimension_element']
+fact = db['fact_era5']
 
-dimension_element.create_index([('_id', "hashed")])
+match_time_ids_pipeline = [
+    {
+        "$match": {
+            "time_id": {"$in": ['t_20240517000000']}
+        }
+    }
+]
+
+fact_data = fact.aggregate(match_time_ids_pipeline)
+print(list(fact_data))
 connect.close()
 
 

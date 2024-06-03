@@ -46,41 +46,43 @@ def deserialize(json_str):
     return json.loads(json_str, object_hook=default_deserializer)
 
 
+@task
+def extract_staging_era5_single():
+    connect = MongoDBHook(conn_id='mongodb')
+    documents = list(connect.find(database='staging_area', collection='era5_single'))
+    dimension_element = []
+    dimension_time = []
+    dimension_location = []
+    fact_era5 = []
 
-@task_group
-def group_task_init_staging_era5_single():
-    @task 
-    def read_era5_single():
-        files = get_files_in_directory(SOURCES_PATH + 'era5-single')
-        coordinates, elements = get_era5_data(files[0])
-        return coordinates, elements
+    for document in documents:
+        
+        for element_data in document['elements']:
+
+            for i in range(len(element_data['values'])):
+                element = {'name': element_data['name'], 'short_name': element_data['short_name'], 'unit': element_data['units']}
+                time = {'date': element_data['date'], 'hour': element_data['time']}
+                location = {'latitude': document['coordinates'][i][0], 'longitude': document['coordinates'][i][1], 'altitude': element_data['pressure_level']}
+
+                dimension_element.append(element)
+                dimension_time.append(time)
+                dimension_location.append(location)
+
+                value = [element_data['values'][i]]
+                fact_to_dimensions = {'value': value, 'element': element, 'time': time, 'location': location}
+                fact_era5.append(fact_to_dimensions)
+
+    return  {
+                'fact': fact_era5, 
+                'dimension_element': dimension_element, 
+                'dimension_time': dimension_time,
+                'dimension_location': dimension_location
+            }
+
     
-    @task 
-    def split_era5_single(era5_data):
-        coordinates = era5_data[0]
-        elements = era5_data[1]
-        splitted_data = split_era5(coordinates, elements, 20)
-
-        return splitted_data
-
-    @task 
-    def load_era5_single(documents):
-        connect = MongoDBHook(conn_id='mongodb')
-        connect.insert_one(
-            database='staging_area', 
-            collection='era5_single', 
-            document=documents[0]
-        )
-    
-    reading_era5 = read_era5_single()
-    splitting_era5 = split_era5_single(reading_era5)
-    loading_era5 = load_era5_single(splitting_era5)
-
-    reading_era5 >> splitting_era5 >> loading_era5
-
 
 
 
 with DAG(dag_id="test_dag", start_date=datetime(2022, 4, 2), schedule_interval='@once') as dag:
-    task_1 = group_task_init_staging_era5_single();
+    task_1 = extract_staging_era5_single();
    

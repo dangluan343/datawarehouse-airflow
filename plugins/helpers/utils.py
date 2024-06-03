@@ -90,9 +90,21 @@ def create_time_surrogate_key(date_obj):
     - date_obj (dict): A dictionary containing year, month, day, hour, minute, and second.
 
     Returns:
-    - str: A surrogate key formatted as 't_year_month_day_hour_minute_second'.
+    - str: A surrogate key formatted as 't_YYYYMMDDHHmmss'.
     """
-    return f"t_{date_obj['year']}{date_obj['month']}{date_obj['day']}{date_obj['hour']}{date_obj['minute']}{date_obj['second']}"
+    
+
+    time_key = 't_'
+
+    for key, value in date_obj.items():
+        if value < 10:
+            time_key = time_key + '0' + str(value)
+        else: 
+            time_key = time_key + str(value)
+
+    
+    return time_key
+
 
 def create_element_surrogate_key(element_name):
     return f'e_{element_name}'
@@ -227,31 +239,3 @@ def extract_unique_dates(datetime_strings):
 
 
 
-
-def merge_sorted_lists(lists):
-    heap = []
-    result = []
-
-    # Add the first element from each list to the min-heap
-    for i, lst in enumerate(lists):
-        if lst:
-            heapq.heappush(heap, (lst[0], i, 0))
-
-    prev_val = None  # Track the previously added value
-
-    while heap:
-        val, list_index, element_index = heapq.heappop(heap)
-
-        # Skip duplicate values
-        if val == prev_val:
-            continue
-
-        result.append(val)
-        prev_val = val
-
-        # Move to the next element in the list
-        element_index += 1
-        if element_index < len(lists[list_index]):
-            heapq.heappush(heap, (lists[list_index][element_index], list_index, element_index))
-
-    return result

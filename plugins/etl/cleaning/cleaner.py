@@ -1,4 +1,5 @@
-
+import numpy as np
+import json
 def deduplicate(values):
     """Use set to remove duplicate dictionaries
     list of 1 type of dimension(time, location) -> deduplicated and sorted list of that dimension in all documents

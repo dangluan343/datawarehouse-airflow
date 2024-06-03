@@ -9,7 +9,7 @@ def create_radar_data_frame(
     velocity, 
     spectrum_width, 
     ray_index,
-    radar_location_id
+    location
     ):
     data_frame = {
         'ray_index': ray_index,
@@ -18,7 +18,7 @@ def create_radar_data_frame(
         'reflectivity': reflectivity,
         'velocity': velocity,
         'spectrum_width': spectrum_width,
-        'radar_location_id': radar_location_id
+        'location': location
     }
     return data_frame
 
@@ -61,7 +61,12 @@ class RadarReader:
         longitude = self.radar.longitude['data'][0]
         latitude = self.radar.latitude['data'][0]
         altitude = self.radar.altitude['data'][0]
-        radar_location_id = create_location_surrogate_key(longitude,latitude,altitude)
+
+        location = {
+            'longitude':longitude,
+            'latitude':latitude,
+            'altitude':altitude
+        }
 
         data_frames = []
 
@@ -83,7 +88,7 @@ class RadarReader:
                 velocity, 
                 spectrum_width, 
                 ray_index,
-                radar_location_id
+                location
             )
 
             data_frames.append(data_frame)
@@ -106,7 +111,12 @@ class RadarReader:
                 'velocity': self.get_element_metadata('velocity'),
                 'spectrum_width': self.get_element_metadata('spectrum_width'),
             },
-            'radar_location_id': create_location_surrogate_key(longitude,latitude,altitude),
+            # 'radar_location_id': create_location_surrogate_key(longitude,latitude,altitude),
+            'location': {
+                'longitude': longitude,
+                'latitude': latitude,
+                'altitude': altitude
+            },
             'sweep_number': self.radar.sweep_number['data'],
             'sweep_mode': sweep_mode,
             'fixed_angle': self.radar.fixed_angle['data'],

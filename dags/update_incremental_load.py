@@ -71,103 +71,103 @@ with DAG('initial_load_radar_v2', default_args=default_args, schedule_interval='
 
     @task_group
     def group_task_init_staging_radar():
-        pass
-        # @task
-        # def get_absolute_file_paths():
+        
+        @task
+        def get_absolute_file_paths():
 
-        #     connect = MongoDBHook(conn_id='mongodb')
-        #     source_info = {
-        #         'source': 'NHABE',
-        #         'source_type': 'static_file'
-        #     }
+            connect = MongoDBHook(conn_id='mongodb')
+            source_info = {
+                'source': 'NHABE',
+                'source_type': 'static_file'
+            }
 
-        #     @write_audit_log_file
-        #     def excecute(connect: MongoDBHook, source_info: dict):
-        #         file_paths = read_radar_file_path()
-        #         return file_paths
+            @write_audit_log_file
+            def excecute(connect: MongoDBHook, source_info: dict):
+                file_paths = read_radar_file_path()
+                return file_paths
 
-        #     return excecute(connect=connect, source_info=source_info)
+            return excecute(connect=connect, source_info=source_info)
 
         
-        # @task_group(group_id='group_task_etl_on_each_file')
-        # def group_task_etl_on_each_file(file_path):
+        @task_group(group_id='group_task_etl_on_each_file')
+        def group_task_etl_on_each_file(file_path):
 
 
 
-        #     @task 
-        #     def read_radar_info(file_path):
-        #         radar = pyart.io.read_sigmet(file_path)
-        #         reader = RadarReader(radar)
-        #         radar_info = reader.get_radar_info()
-        #         return serialize(radar_info)
+            @task 
+            def read_radar_info(file_path):
+                radar = pyart.io.read_sigmet(file_path)
+                reader = RadarReader(radar)
+                radar_info = reader.get_radar_info()
+                return serialize(radar_info)
             
-        #     @task 
-        #     def read_radar_sweep(file_path):
-        #         radar = pyart.io.read_sigmet(file_path)
-        #         reader = RadarReader(radar)
-        #         radar_sweep = reader.get_radar_sweep()
-        #         return serialize(radar_sweep)
+            @task 
+            def read_radar_sweep(file_path):
+                radar = pyart.io.read_sigmet(file_path)
+                reader = RadarReader(radar)
+                radar_sweep = reader.get_radar_sweep()
+                return serialize(radar_sweep)
             
-        #     @task 
-        #     def read_radar_data(file_path):
-        #         radar = pyart.io.read_sigmet(file_path)
-        #         reader = RadarReader(radar)
-        #         radar_data = reader.get_radar_data()
-        #         return serialize(radar_data)
+            @task 
+            def read_radar_data(file_path):
+                radar = pyart.io.read_sigmet(file_path)
+                reader = RadarReader(radar)
+                radar_data = reader.get_radar_data()
+                return serialize(radar_data)
             
-        #     @task
-        #     def load_radar_location(radar_info):
-        #         connect = MongoDBHook(conn_id='mongodb')
-        #         loader = RadarStagingLoader(connect)
-        #         logging.info(f"Loaded radar info: {radar_info}")
-        #         loader.load_radar_location(deserialize(radar_info))
+            @task
+            def load_radar_location(radar_info):
+                connect = MongoDBHook(conn_id='mongodb')
+                loader = RadarStagingLoader(connect)
+                logging.info(f"Loaded radar info: {radar_info}")
+                loader.load_radar_location(deserialize(radar_info))
 
-        #     @task
-        #     def load_radar_sweep(radar_sweep):
-        #         connect = MongoDBHook(conn_id='mongodb')
-        #         loader = RadarStagingLoader(connect)
-        #         loader.load_radar_sweep(deserialize(radar_sweep))
-        #         logging.info(f"Loaded radar sweep info: {radar_sweep}")
+            @task
+            def load_radar_sweep(radar_sweep):
+                connect = MongoDBHook(conn_id='mongodb')
+                loader = RadarStagingLoader(connect)
+                loader.load_radar_sweep(deserialize(radar_sweep))
+                logging.info(f"Loaded radar sweep info: {radar_sweep}")
 
-        #     @task
-        #     def load_radar_data(radar_data):
-        #         connect = MongoDBHook(conn_id='mongodb')
-        #         loader = RadarStagingLoader(connect)
-        #         loader.load_radar_data(deserialize(radar_data))
-        #         logging.info(f"Loaded radar data: {radar_data}")
+            @task
+            def load_radar_data(radar_data):
+                connect = MongoDBHook(conn_id='mongodb')
+                loader = RadarStagingLoader(connect)
+                loader.load_radar_data(deserialize(radar_data))
+                logging.info(f"Loaded radar data: {radar_data}")
             
-        #     @task
-        #     def write_audit_log_load(file_path):
-        #         file_name = get_file_name_from_absolute_path(file_path)
-        #         document = {
-        #             '_id': file_name,
-        #             'file_name': file_name,
-        #             'from': 'disk',
-        #             'to': 'staging_area',
-        #             'status': 'success',
-        #             'completed_at': datetime.now(),
-        #         }
-        #         connect = MongoDBHook(conn_id='mongodb')
-        #         connect.insert_one(
-        #             database='audit_log', 
-        #             collection='audit_log_load', 
-        #             document=document
-        #         )
+            @task
+            def write_audit_log_load(file_path):
+                file_name = get_file_name_from_absolute_path(file_path)
+                document = {
+                    '_id': file_name,
+                    'file_name': file_name,
+                    'from': 'disk',
+                    'to': 'staging_area',
+                    'status': 'success',
+                    'completed_at': datetime.now(),
+                }
+                connect = MongoDBHook(conn_id='mongodb')
+                connect.insert_one(
+                    database='audit_log', 
+                    collection='audit_log_load', 
+                    document=document
+                )
 
-        #         logging.info(f"audit log load: {file_name}")
+                logging.info(f"audit log load: {file_name}")
 
-        #     reading_radar_info = read_radar_info(file_path)
-        #     loading_radar_location = load_radar_location(reading_radar_info)
-        #     reading_radar_sweep = read_radar_sweep(file_path)
-        #     loading_radar_sweep = load_radar_sweep(reading_radar_sweep)
-        #     reading_radar_data = read_radar_data(file_path)
-        #     loading_radar_data = load_radar_data(reading_radar_data) 
-        #     writing_adit_log_load = write_audit_log_load(file_path)
+            reading_radar_info = read_radar_info(file_path)
+            loading_radar_location = load_radar_location(reading_radar_info)
+            reading_radar_sweep = read_radar_sweep(file_path)
+            loading_radar_sweep = load_radar_sweep(reading_radar_sweep)
+            reading_radar_data = read_radar_data(file_path)
+            loading_radar_data = load_radar_data(reading_radar_data) 
+            writing_adit_log_load = write_audit_log_load(file_path)
             
-        #     return [loading_radar_location, loading_radar_sweep, loading_radar_data] >> writing_adit_log_load
+            return [loading_radar_location, loading_radar_sweep, loading_radar_data] >> writing_adit_log_load
 
-        # file_paths = get_absolute_file_paths()
-        # group_task_etl_on_each_file.expand(file_path=file_paths)
+        file_paths = get_absolute_file_paths()
+        group_task_etl_on_each_file.expand(file_path=file_paths)
 
     @task_group
     def group_task_init_staging_era5_single():
@@ -544,8 +544,6 @@ with DAG('initial_load_radar_v2', default_args=default_args, schedule_interval='
             connect = MongoDBHook(conn_id='mongodb')
             loadable_fact = []
             for document in all_fact_era5:
-                
-                print('hâh',type(document))
 
                 query = {
                             'element_id': document['element_id'], 
