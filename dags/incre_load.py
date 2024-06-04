@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.decorators import task, task_group
 from airflow.utils.dates import days_ago
+
 from hooks.mongo_hook import MongoDBHook
 
 from etl.extracting.source_api import *
@@ -70,7 +71,7 @@ with DAG('incre_load', default_args=default_args, schedule_interval='@once') as 
 
     @task_group
     def group_task_init_staging_radar():
-        
+        # pass
         @task
         def get_absolute_file_paths():
 
@@ -82,23 +83,30 @@ with DAG('incre_load', default_args=default_args, schedule_interval='@once') as 
 
             @write_audit_log_file
             def excecute(connect: MongoDBHook, source_info: dict):
-                file_paths = read_radar_file_path()
+                file_paths = get_absolute_file_path()
                 return file_paths
 
             return excecute(connect=connect, source_info=source_info)
+        
+
+        @task 
+        def task_get_new_absolute_file_paths(current_absolute_file_paths):
+            connect = MongoDBHook(conn_id='mongodb')
+            new_absolute_file_paths = list(set(current_absolute_file_paths) - set(doc['absolute_path'] for doc in connect.find(database='audit_log', collection='audit_log_file', query={}, projection={'absolute_path': 1})))
+            source_info = {
+                'source': 'NHABE',
+                'source_type': 'static_file'
+            }
+            
+            @write_audit_log_file
+            def excecute(new_paths: list, connect: MongoDBHook, source_info: dict):
+                return new_paths
+
+            return excecute(new_paths=new_absolute_file_paths, connect=connect, source_info=source_info)
 
         
         @task_group(group_id='group_task_etl_on_each_file')
         def group_task_etl_on_each_file(file_path):
-
-
-
-            @task 
-            def read_radar_info(file_path):
-                radar = pyart.io.read_sigmet(file_path)
-                reader = RadarReader(radar)
-                radar_info = reader.get_radar_info()
-                return serialize(radar_info)
             
             @task 
             def read_radar_sweep(file_path):
@@ -114,12 +122,7 @@ with DAG('incre_load', default_args=default_args, schedule_interval='@once') as 
                 radar_data = reader.get_radar_data()
                 return serialize(radar_data)
             
-            @task
-            def load_radar_location(radar_info):
-                connect = MongoDBHook(conn_id='mongodb')
-                loader = RadarStagingLoader(connect)
-                logging.info(f"Loaded radar info: {radar_info}")
-                loader.load_radar_location(deserialize(radar_info))
+            
 
             @task
             def load_radar_sweep(radar_sweep):
@@ -155,82 +158,81 @@ with DAG('incre_load', default_args=default_args, schedule_interval='@once') as 
 
                 logging.info(f"audit log load: {file_name}")
 
-            reading_radar_info = read_radar_info(file_path)
-            loading_radar_location = load_radar_location(reading_radar_info)
             reading_radar_sweep = read_radar_sweep(file_path)
             loading_radar_sweep = load_radar_sweep(reading_radar_sweep)
             reading_radar_data = read_radar_data(file_path)
             loading_radar_data = load_radar_data(reading_radar_data) 
             writing_adit_log_load = write_audit_log_load(file_path)
             
-            return [loading_radar_location, loading_radar_sweep, loading_radar_data] >> writing_adit_log_load
+            return [ loading_radar_sweep, loading_radar_data] >> writing_adit_log_load
 
         file_paths = get_absolute_file_paths()
-        group_task_etl_on_each_file.expand(file_path=file_paths)
+        new_file_paths = task_get_new_absolute_file_paths(file_paths)
+        group_task_etl_on_each_file.expand(file_path=new_file_paths)
+
 
     @task_group
     def group_task_init_staging_era5_single():
-        pass
-        # @task 
-        # def read_era5_single():
-        #     files = get_files_in_directory(SOURCES_PATH + 'era5-single')
-        #     coordinates, elements = get_era5_data(files[0])
-        #     return coordinates, elements
+        @task 
+        def read_era5_single():
+            files = get_files_in_directory(SOURCES_PATH + 'era5-single')
+            coordinates, elements = get_era5_data(files[0])
+            return coordinates, elements
         
-        # @task 
-        # def split_era5_single(era5_data):
-        #     coordinates = era5_data[0]
-        #     elements = era5_data[1]
-        #     splitted_data = split_era5(coordinates, elements, 20)
+        @task 
+        def split_era5_single(era5_data):
+            coordinates = era5_data[0]
+            elements = era5_data[1]
+            splitted_data = split_era5(coordinates, elements, 10)
 
-        #     return splitted_data
+            return splitted_data
 
-        # @task 
-        # def load_era5_single(documents):
-        #     connect = MongoDBHook(conn_id='mongodb')
-        #     connect.insert_one(
-        #         database='staging_area', 
-        #         collection='era5_single', 
-        #         document=documents[0]
-        #     )
+        @task 
+        def load_era5_single(documents):
+            connect = MongoDBHook(conn_id='mongodb')
+            connect.insert_one(
+                database='staging_area', 
+                collection='era5_single', 
+                document=documents[0]
+            )
         
-        # reading_era5 = read_era5_single()
-        # splitting_era5 = split_era5_single(reading_era5)
-        # loading_era5 = load_era5_single(splitting_era5)
+        reading_era5 = read_era5_single()
+        splitting_era5 = split_era5_single(reading_era5)
+        loading_era5 = load_era5_single(splitting_era5)
 
-        # reading_era5 >> splitting_era5 >> loading_era5
+        reading_era5 >> splitting_era5 >> loading_era5
 
     @task_group
     def group_task_init_staging_era5_pressure():
-        pass
-        # @task 
-        # def read_era5_pressure():
-        #     files = get_files_in_directory(SOURCES_PATH + 'era5-pressure')
-        #     coordinates, elements = get_era5_data(files[0])
-        #     return coordinates, elements
+
+        @task 
+        def read_era5_pressure():
+            files = get_files_in_directory(SOURCES_PATH + 'era5-pressure')
+            coordinates, elements = get_era5_data(files[0])
+            return coordinates, elements
         
-        # @task 
-        # def split_era5_pressure(era5_data):
-        #     coordinates = era5_data[0]
-        #     elements = era5_data[1]
-        #     splitted_data = split_era5(coordinates, elements, 20)
+        @task 
+        def split_era5_pressure(era5_data):
+            coordinates = era5_data[0]
+            elements = era5_data[1]
+            splitted_data = split_era5(coordinates, elements, 10)
 
-        #     return splitted_data
+            return splitted_data
 
-        # @task 
-        # def load_era5_pressure(documents):
-        #     connect = MongoDBHook(conn_id='mongodb')
-        #     connect.insert_one(
-        #         database='staging_area', 
-        #         collection='era5_pressure', 
-        #         document=documents[0]
-        #     )
+        @task 
+        def load_era5_pressure(documents):
+            connect = MongoDBHook(conn_id='mongodb')
+            connect.insert_one(
+                database='staging_area', 
+                collection='era5_pressure', 
+                document=documents[0]
+            )
         
-        # reading_era5 = read_era5_pressure()
-        # splitting_era5 = split_era5_pressure(reading_era5)
-        # loading_era5 = load_era5_pressure(splitting_era5)
+        reading_era5 = read_era5_pressure()
+        splitting_era5 = split_era5_pressure(reading_era5)
+        loading_era5 = load_era5_pressure(splitting_era5)
 
-        # reading_era5 >> splitting_era5 >> loading_era5
+        reading_era5 >> splitting_era5 >> loading_era5
 
     @task_group
     def group_task_init_core():
@@ -543,6 +545,8 @@ with DAG('incre_load', default_args=default_args, schedule_interval='@once') as 
             connect = MongoDBHook(conn_id='mongodb')
             loadable_fact = []
             for document in all_fact_era5:
+                
+                print('hâh',type(document))
 
                 query = {
                             'element_id': document['element_id'], 
@@ -649,7 +653,8 @@ with DAG('incre_load', default_args=default_args, schedule_interval='@once') as 
         getting_new_time_documents = get_loadable_dimension_time_documents(
             [
                 assigning_sur_key_dim_time_radar, 
-                assigning_sur_key_dim_time_era5_single
+                assigning_sur_key_dim_time_era5_single,
+                assigning_sur_key_dim_time_era5_pressure
             ], 
             merging_dim_time
         )
@@ -657,14 +662,18 @@ with DAG('incre_load', default_args=default_args, schedule_interval='@once') as 
         getting_new_location_documents = get_loadable_dimension_location_documents(
             [
                 assigning_sur_key_dim_loc_radar, 
-                assigning_sur_key_dim_loc_era5_single
+                assigning_sur_key_dim_loc_era5_single,
+                assigning_sur_key_dim_loc_era5_pressure
+
             ], 
             merging_dim_loc
         )
         getting_new_element_documents = get_loadable_dimension_element_documents(
             [
                 assigning_sur_key_dim_ele_radar, 
-                assigning_sur_key_dim_ele_era5_single
+                assigning_sur_key_dim_ele_era5_single,
+                assigning_sur_key_dim_ele_era5_pressure
+
             ], 
             merging_dim_ele
         )
@@ -751,9 +760,9 @@ with DAG('incre_load', default_args=default_args, schedule_interval='@once') as 
     @task 
     def refresh_staging():
         connect = MongoDBHook(conn_id='mongodb')
-        # collections = ['radar_data', 'radar_location', 'radar_sweep']
-        # for col in collections:
-        #     connect.delete_many(database='staging_area', collection=col,filter={})
+        collections = ['radar_data', 'era5_pressure', 'era5_single', 'radar_sweep']
+        for col in collections:
+            connect.delete_many(database='staging_area', collection=col,filter={})
             
     init_loading_staging_radar = group_task_init_staging_radar()
     init_loading_staing_era5_single = group_task_init_staging_era5_single()

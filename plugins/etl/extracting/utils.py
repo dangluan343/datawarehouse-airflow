@@ -81,7 +81,7 @@ def element_obj_to_dim_element(ele_obj):
 import os
 
 #%%
-def get_absolute_file_path(data_dir='/Users/thanhho/Documents/weather-data-warehouse/datawarehouse-airflow/dags/sources/radar'):
+def get_absolute_file_path(data_dir='/Users/luanluan/Documents/Data/dw_airflow_2/dags/sources/radar'):
     current_files = set()
     for root, _, files in os.walk(data_dir):
         for file in files:

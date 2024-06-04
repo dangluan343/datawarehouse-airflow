@@ -6,7 +6,7 @@ year = '2024'
 month = '05'
 day = '16'
 
-target_era5_pressure = f'/Users/thanhho/Documents/weather-data-warehouse/sources/era5-pressure/{year}{month}{day}.grib'
+# target_era5_pressure = f'/Users/thanhho/Documents/weather-data-warehouse/sources/era5-pressure/{year}{month}{day}.grib'
 
 
 def fetch_era5_single_file_by_date(year, month, day):
@@ -59,3 +59,34 @@ def fetch_era5_single_file_by_date(year, month, day):
         },
         target_era5_single
     )
+
+def fetch_era5_pressure_file_by_date(year, month, day):
+    dataset = 'reanalysis-era5-pressure-levels'
+    target_era5_pressure = f'/Users/luanluan/Documents/Data/dw_airflow_2/data/era5-pressure/{year}{month}{day}.grib'
+    era5 = cdsapi.Client()
+    era5.retrieve(
+        dataset,
+        {
+            'product_type': 'reanalysis',
+            'variable':  [
+                'fraction_of_cloud_cover',
+            ],
+            'pressure_level': [
+                '1'
+            ],
+            'year': year,
+            'month': month,
+            'day': day,
+            'time': [
+                '00:00'
+            ],
+            'area': [
+                23.39, 102.14, 7.89,
+                114.68,
+            ],
+            'format': 'grib',
+        },
+        target_era5_pressure
+    )
+
+# fetch_era5_pressure_file_by_date('2024','05','17')

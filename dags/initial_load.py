@@ -746,7 +746,7 @@ with DAG('initial_load', default_args=default_args, schedule_interval='@once') a
     @task 
     def refresh_staging():
         connect = MongoDBHook(conn_id='mongodb')
-        collections = ['radar_data', 'radar_location', 'radar_sweep']
+        collections = ['radar_data', 'era5_pressure', 'era5_single', 'radar_sweep']
         for col in collections:
             connect.delete_many(database='staging_area', collection=col,filter={})
             

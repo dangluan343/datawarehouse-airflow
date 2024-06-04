@@ -2,7 +2,7 @@ import eccodes
 import os
 import glob
 
-SOURCES_PATH = '/Users/thanhho/Documents/weather-data-warehouse/sources/'
+SOURCES_PATH = '/Users/luanluan/Documents/Data/dw_airflow_2/dags/sources/'
 
 def get_files_in_directory(directory):
     file_pattern = os.path.join(directory, '*.grib')

@@ -169,20 +169,15 @@ from pymongo import MongoClient
 
 connect = MongoClient('mongodb://localhost:27017')
 db = connect['core']
-fact = db['fact_era5']
+db['fact_era5'].create_index([('element_id', 'hashed')])
+db['fact_era5'].create_index([('time_id', 'hashed')])
+db['fact_era5'].create_index([('location_id', 'hashed')])
+db['fact_era5'].create_index([('element_id', 1), ('time_id', 1), ('location_id', 1)])
 
-match_time_ids_pipeline = [
-    {
-        "$match": {
-            "time_id": {"$in": ['t_20240517000000']}
-        }
-    }
-]
-
-fact_data = fact.aggregate(match_time_ids_pipeline)
-print(list(fact_data))
-connect.close()
-
+db['fact_radar'].create_index([('element_id', 'hashed')])
+db['fact_radar'].create_index([('time_id', 'hashed')])
+db['fact_radar'].create_index([('location_id', 'hashed')])
+db['fact_radar'].create_index([('element_id', 1), ('time_id', 1), ('location_id', 1)])
 
 
 
